@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目详情 - 项目管理系统</title>
+    <!-- 外部样式和图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- Chart.js 用于详细数据可视化 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 项目详情页面特定样式 */
+        .project-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .project-info {
+            flex: 1;
+        }
+        
+        .project-title-large {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .project-description-large {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            max-width: 800px;
+        }
+        
+        .project-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .meta-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .meta-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .detail-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* 详情内容网格 */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .detail-card {
+            height: 100%;
+        }
+        
+        .detail-card-large {
+            grid-column: span 2;
+        }
+        
+        @media (max-width: 1100px) {
+            .detail-card-large {
+                grid-column: span 1;
+            }
+        }
+        
+        /* 进度历史图表 */
+        .progress-history-chart {
+            height: 300px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        /* 时间线增强 */
+        .timeline-detailed {
+            margin-top: 20px;
+        }
+        
+        .timeline-item-detailed {
+            position: relative;
+            padding: 20px 0 20px 30px;
+            border-left: 2px solid var(--border-color);
+        }
+        
+        .timeline-item-detailed:last-child {
+            border-left: 2px solid transparent;
+        }
+        
+        .timeline-item-detailed:before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 20px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--primary-color);
+        }
+        
+        .timeline-date-detailed {
+            color: var(--text-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        
+        .timeline-content-detailed {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        /* 团队成员 */
+        .team-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .team-member {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .member-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .member-name {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .member-role {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* 文件附件 */
+        .file-attachments {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .file-item:hover {
+            background: rgba(124, 58, 237, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .file-icon {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+        
+        .file-details {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 3px;
+        }
+        
+        .file-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .file-action {
+            padding: 6px 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .file-action:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        /* 评论系统 */
+        .comments-section {
+            margin-top: 20px;
+        }
+        
+        .comment-form {
+            margin-bottom: 20px;
+        }
+        
+        .comment-input {
+            width: 100%;
+            padding: 15px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 10px;
+        }
+        
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        }
+        
+        .comment-submit {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .comment-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.3);
+        }
+        
+        .comments-list {
+            margin-top: 20px;
+        }
+        
+        .comment-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .comment-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .comment-name {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .comment-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .comment-content {
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .project-detail-header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .detail-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .project-title-large {
+                font-size: 1.8rem;
+            }
+            
+            .project-meta-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 打印优化 */
+        @media print {
+            .detail-actions,
+            .comment-form,
+            .file-action {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container container-wide">
+        <!-- 返回链接 -->
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            返回项目总览
+        </a>
+        
+        <!-- 项目详情头部 -->
+        <div class="project-detail-header">
+            <div class="project-info">
+                <div class="project-title-large">
+                    <span id="projectTitle">单词本学习系统</span>
+                    <span class="project-status status-active" id="projectStatus">活跃</span>
+                </div>
+                <div class="project-description-large" id="projectDescription">
+                    微信小程序 + 腾讯云，单词记忆管理。基于科学记忆算法的单词学习工具，支持多语言翻译和个性化学习计划。
+                </div>
+                
+                <div class="project-meta-grid">
+                    <div class="meta-item">
+                        <div class="meta-label">当前进度</div>
+                        <div class="meta-value" id="projectProgress">85%</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">优先级</div>
+                        <div class="meta-value" id="projectPriority">高</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">团队</div>
+                        <div class="meta-value" id="projectTeam">协作项目</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">最后更新</div>
+                        <div class="meta-value" id="projectLastUpdate">2026-03-24 11:30</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">开始时间</div>
+                        <div class="meta-value" id="projectStartDate">2026-03-20</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">预计完成</div>
+                        <div class="meta-value" id="projectEndDate">2026-03-28</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-actions">
+                <button class="btn btn-primary" id="editProjectBtn">
+                    <i class="fas fa-edit"></i> 编辑项目
+                </button>
+                <button class="btn btn-secondary" id="exportProjectBtn">
+                    <i class="fas fa-download"></i> 导出数据
+                </button>
+                <button class="btn btn-secondary" id="shareProjectBtn">
+                    <i class="fas fa-share"></i> 分享
+                </button>
+            </div>
+        </div>
+        
+        <!-- 详情内容网格 -->
+        <div class="detail-grid">
+            <!-- 进度历史 -->
+            <div class="detail-card card detail-card-large">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> 进度历史</h3>
+                    <select id="progressRange" class="chart-range-selector">
+                        <option value="7">最近7天</option>
+                        <option value="30" selected>最近30天</option>
+                        <option value="90">最近90天</option>
+                    </select>
+                </div>
+                <div class="progress-history-chart">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 当前任务 -->
+            <div class="detail-card card">
+                <div class="card-header">
+                    <h3><i class="fas fa-tasks"></i> 当前任务</h3>
+                    <span id="tasksCount">4 个任务</span>
+                </div>
+                <div class="task-list" id="projectTasks">
+                    <!-- 任务将通过JavaScript动态生成 -->
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-sm btn-primary" id="addTaskBtn">
+                        <i class="fas fa-plus"></i> 添加任务
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 项目卡点 -->
+            <div class="detail-card card">
+                <div class="card-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> 当前卡点</h3>
+                    <span id="blockersCount">2 个卡点</span>
+                </div>
+                <div class="blocker-list" id="projectBlockers">
+                    <!-- 卡点将通过JavaScript动态生成 -->
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-sm btn-secondary" id="resolveBlockerBtn">
+                        <i class="fas fa-check"></i> 标记解决
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 详细时间线 -->
+            <div class="detail-card card detail-card-large">
+                <div class="card-header">
+                    <h3><i class="fas fa-history"></i> 项目时间线</h3>
+                    <button class="btn btn-sm btn-secondary" id="addTimelineBtn">
+                        <i class="fas fa-plus"></i> 添加记录
+                    </button>
+                </div>
+                <div class="timeline-detailed" id="projectTimeline">
+                    <!-- 时间线将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 团队成员 -->
+            <div class="detail-card card">
+                <div class="card-header">
+                    <h3><i class="fas fa-users"></i> 团队成员</h3>
+                    <button class="btn btn-sm btn-secondary" id="addMemberBtn">
+                        <i class="fas fa-user-plus"></i> 添加
+                    </button>
+                </div>
+                <div class="team-members" id="projectTeamMembers">
+                    <!-- 团队成员将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 文件附件 -->
+            <div class="detail-card card">
+                <div class="card-header">
+                    <h3><i class="fas fa-paperclip"></i> 文件附件</h3>
+                    <button class="btn btn-sm btn-secondary" id="uploadFileBtn">
+                        <i class="fas fa-upload"></i> 上传
+                    </button>
+                </div>
+                <div class="file-attachments" id="projectFiles">
+                    <!-- 文件将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 评论系统 -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-comments"></i> 项目讨论</h3>
+                <span id="commentsCount">3 条评论</span>
+            </div>
+            <div class="comments-section">
+                <div class="comment-form">
+                    <textarea class="comment-input" id="commentInput" placeholder="添加评论..."></textarea>
+                    <button class="comment-submit" id="commentSubmit">发布评论</button>
+                </div>
+                <div class="comments-list" id="projectComments">
+                    <!-- 评论将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer>
+            <p>© 2026 项目管理系统 - 项目详情 | 版本 2.1.0</p>
+            <p>项目ID: <span id="projectId">PROJ-001</span> | 最后同步: <span class="update-time" id="detailSyncTime">加载中...</span></p>
+            <p class="mt-2">
+                <small>
+                    <i class="fas fa-info-circle"></i> 
+                    支持实时数据
