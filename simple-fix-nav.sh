@@ -1,18 +1,30 @@
+#!/bin/bash
+# 简单修复导航栏
+
+echo "简单修复导航栏..."
+
+# 恢复备份文件
+for file in index.html sync-monitor-enhanced.html project-details.html sync-history.html sync-control.html system-config.html; do
+    if [ -f "${file}.backup" ]; then
+        echo "恢复备份: $file"
+        cp "${file}.backup" "$file"
+    fi
+done
+
+# 现在手动修复index.html的导航栏
+cat > index-fixed.html << 'HTMLEND'
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系统配置 - 项目管理系统</title>
+    <title>项目管理系统 - 增强版 v2.4</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/enhanced.css">
 </head>
 <body>
     <div class="container container-wide">
-        <nav class="navbar">
-            <div class="nav-brand">
-                <i class="fas fa-rocket"></i>
         <!-- 导航栏 -->
         <nav class="navbar">
             <div class="nav-brand">
@@ -21,22 +33,22 @@
                 <span class="version-badge">v2.4</span>
             </div>
             <div class="nav-links">
-                <a href="index.html" class="nav-link ">
+                <a href="index.html" class="nav-link active">
                     <i class="fas fa-home"></i> 项目总览
                 </a>
-                <a href="sync-monitor-enhanced.html" class="nav-link ">
+                <a href="sync-monitor-enhanced.html" class="nav-link">
                     <i class="fas fa-sync-alt"></i> 同步监控
                 </a>
-                <a href="project-details.html" class="nav-link ">
+                <a href="project-details.html" class="nav-link">
                     <i class="fas fa-info-circle"></i> 项目详情
                 </a>
-                <a href="sync-history.html" class="nav-link ">
+                <a href="sync-history.html" class="nav-link">
                     <i class="fas fa-history"></i> 同步历史
                 </a>
-                <a href="sync-control.html" class="nav-link ">
+                <a href="sync-control.html" class="nav-link">
                     <i class="fas fa-play-circle"></i> 手动触发
                 </a>
-                <a href="system-config.html" class="nav-link active">
+                <a href="system-config.html" class="nav-link">
                     <i class="fas fa-cog"></i> 系统配置
                 </a>
                 <a href="https://github.com/tengfeizhao1219/Projects-Dashboard" class="nav-link" target="_blank">
@@ -44,17 +56,12 @@
                 </a>
             </div>
         </nav>
-        
-        <div class="page-header">
-            <h1><i class="fas fa-cog"></i> 系统配置</h1>
-        </div>
-        
-        <div style="text-align: center; margin: 50px 0; padding: 30px; background: var(--card-bg); border-radius: 15px;">
-            <h2><i class="fas fa-cogs"></i> 系统配置功能</h2>
-            <p>版本: v2.4 | 开发中</p>
-            <p>功能: 系统参数配置和管理</p>
-            <p>状态: 正在开发，即将上线</p>
-        </div>
-    </div>
-</body>
-</html>
+HTMLEND
+
+# 添加index.html的剩余内容（从导航栏之后）
+tail -n +30 index.html | head -n 1000 >> index-fixed.html
+
+# 替换原文件
+mv index-fixed.html index.html
+
+echo "index.html导航栏修复完成"

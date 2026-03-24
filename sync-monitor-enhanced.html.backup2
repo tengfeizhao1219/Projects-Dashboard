@@ -13,37 +13,20 @@
         /* 同步监控页面特定样式 */
         .metrics-grid {
             display: grid;
-        <!-- 导航栏 -->
-        <nav class="navbar">
-            <div class="nav-brand">
-                <i class="fas fa-rocket"></i>
-                <span>项目管理系统</span>
-                <span class="version-badge">v2.4</span>
-            </div>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link ">
-                    <i class="fas fa-home"></i> 项目总览
-                </a>
-                <a href="sync-monitor-enhanced.html" class="nav-link active">
-                    <i class="fas fa-sync-alt"></i> 同步监控
-                </a>
-                <a href="project-details.html" class="nav-link ">
-                    <i class="fas fa-info-circle"></i> 项目详情
-                </a>
-                <a href="sync-history.html" class="nav-link ">
-                    <i class="fas fa-history"></i> 同步历史
-                </a>
-                <a href="sync-control.html" class="nav-link ">
-                    <i class="fas fa-play-circle"></i> 手动触发
-                </a>
-                <a href="system-config.html" class="nav-link ">
-                    <i class="fas fa-cog"></i> 系统配置
-                </a>
-                <a href="https://github.com/tengfeizhao1219/Projects-Dashboard" class="nav-link" target="_blank">
-                    <i class="fab fa-github"></i> GitHub
-                </a>
-            </div>
-        </nav>
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
             width: 6px;

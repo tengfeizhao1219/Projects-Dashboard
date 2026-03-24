@@ -11,6 +11,8 @@
 <body>
     <div class="container container-wide">
         <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-brand">
         <!-- 导航栏 -->
         <nav class="navbar">
             <div class="nav-brand">
@@ -22,16 +24,19 @@
                 <a href="index.html" class="nav-link active">
                     <i class="fas fa-home"></i> 项目总览
                 </a>
-                <a href="sync-monitor-enhanced.html" class="nav-link">
+                <a href="sync-monitor-enhanced.html" class="nav-link ">
                     <i class="fas fa-sync-alt"></i> 同步监控
                 </a>
-                <a href="sync-history.html" class="nav-link">
+                <a href="project-details.html" class="nav-link ">
+                    <i class="fas fa-info-circle"></i> 项目详情
+                </a>
+                <a href="sync-history.html" class="nav-link ">
                     <i class="fas fa-history"></i> 同步历史
                 </a>
-                <a href="sync-control.html" class="nav-link">
+                <a href="sync-control.html" class="nav-link ">
                     <i class="fas fa-play-circle"></i> 手动触发
                 </a>
-                <a href="system-config.html" class="nav-link">
+                <a href="system-config.html" class="nav-link ">
                     <i class="fas fa-cog"></i> 系统配置
                 </a>
                 <a href="https://github.com/tengfeizhao1219/Projects-Dashboard" class="nav-link" target="_blank">
@@ -57,112 +62,120 @@
                     <i class="fas fa-cog"></i> 设置
                 </button>
             </div>
-        </div>        <!-- 英雄统计区域 -->
-        <div id="heroStatsContainer"></div>
-        
-        <!-- 更新时间 -->
-        <div style="text-align: center; margin-bottom: 25px;">
-            <div class="update-time">
-                <i class="fas fa-clock"></i> 最后更新: <span id="updateTime">2026-03-24 18:05:00</span>
-            </div>
-        </div>
-        
-        <!-- 项目网格增强版 -->
-        <h2 class="mt-4"><i class="fas fa-project-diagram"></i> 所有项目</h2>
-        <div id="projectsContainer"></div>
-        
-        <!-- 近期任务时间线 -->
-        <div class="timeline">
-            <div class="timeline-title">
-                <i class="fas fa-calendar-alt"></i> 近期任务计划
-            </div>
-            <div id="recentTasksContainer"></div>
         </div>
         
         <!-- API状态指示器 -->
-        <div class="api-status-container" id="apiStatusContainer"></div>
+        <div class="api-status-indicator" id="apiStatusIndicator">
+            <div class="api-status-content">
+                <span class="api-status-label">数据源状态:</span>
+                <span class="api-status-value" id="apiStatusValue">检查中...</span>
+                <button class="api-test-btn" id="apiTestBtn">
+                    <i class="fas fa-bolt"></i> 测试连接
+                </button>
+            </div>
+        </div>
+        
+        <!-- 英雄统计区域 -->
+        <div class="hero-stats">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">活跃项目</div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> 较上月 +2
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">68%</div>
+                    <div class="stat-label">平均进度</div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> 较上周 +5%
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">14</div>
+                    <div class="stat-label">待完成任务</div>
+                    <div class="stat-trend negative">
+                        <i class="fas fa-arrow-down"></i> 较上周 -3
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #f87171);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">当前卡点</div>
+                    <div class="stat-trend neutral">
+                        <i class="fas fa-minus"></i> 与上周持平
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 项目容器 -->
+        <div class="projects-container" id="projectsContainer">
+            <!-- 项目卡片将通过JavaScript动态生成 -->
+        </div>
+        
+        <!-- 近期任务时间线 -->
+        <div class="timeline-section">
+            <h2 class="section-title">
+                <i class="fas fa-clock"></i> 近期任务
+            </h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">今天 17:00</div>
+                        <div class="timeline-title">测试主页面增强功能</div>
+                        <div class="timeline-desc">验证所有增强功能是否正常工作</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">今天 18:00</div>
+                        <div class="timeline-title">验证API服务器稳定性</div>
+                        <div class="timeline-desc">检查API服务器运行状态和数据接口</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">明天 09:00</div>
+                        <div class="timeline-title">优化移动端响应式设计</div>
+                        <div class="timeline-desc">改进移动设备上的用户体验</div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- 页脚 -->
         <footer>
-            <p>© 2026 项目管理系统 - 增强版 v2.4 | 实时数据 | 增强功能已恢复</p>
-            <p>数据同步: <span class="update-time" id="syncTime">2026-03-24 18:05:00</span> | 下次更新: <span id="nextUpdate">2分钟</span></p>
-            <p class="mt-2">
-                <small>
-                    <i class="fas fa-info-circle"></i> 
-                    支持实时数据API、增量更新跟踪、项目卡点管理、移动端优化、增强版UI
-                </small>
-            </p>
+            <p>© 2026 项目管理系统 - 增强版 v2.4 | 最后更新: <span id="lastUpdateTime">--:--:--</span></p>
+            <p>数据源: 可靠的每小时同步系统API | 版本: v2.4</p>
         </footer>
     </div>
-
+    
     <!-- JavaScript -->
     <script src="scripts/enhanced.js"></script>
-    <script>
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化增强版主页面
-            if (window.initEnhancedDashboard) {
-                window.initEnhancedDashboard();
-            }
-            
-            // 更新时间显示
-            updateTimeDisplay();
-            
-            // 每30秒更新一次时间
-            setInterval(updateTimeDisplay, 30000);
-            
-            // 绑定全局按钮事件
-            initGlobalButtons();
-        });
-        
-        // 更新时间显示
-        function updateTimeDisplay() {
-            const now = new Date();
-            const timeStr = now.toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
-            
-            // 计算下次更新时间（2分钟后）
-            const nextUpdate = new Date(now.getTime() + 2 * 60 * 1000);
-            const nextUpdateStr = nextUpdate.toLocaleTimeString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            });
-            
-            document.getElementById('updateTime').textContent = timeStr;
-            document.getElementById('syncTime').textContent = timeStr;
-            document.getElementById('nextUpdate').textContent = nextUpdateStr;
-        }
-        
-        // 初始化全局按钮
-        function initGlobalButtons() {
-            // 全局刷新按钮
-            document.getElementById('globalRefresh').addEventListener('click', () => {
-                window.location.reload();
-            });
-            
-            // 全局导出按钮
-            document.getElementById('globalExport').addEventListener('click', () => {
-                alert('数据导出功能将在下一个版本中实现！');
-            });
-            
-            // 全局主题按钮
-            document.getElementById('globalTheme').addEventListener('click', () => {
-                alert('主题切换功能正在开发中...');
-            });
-            
-            // 全局设置按钮
-            document.getElementById('globalSettings').addEventListener('click', () => {
-                alert('设置页面将在下一个版本中实现！');
-            });
-        }
-    </script>
 </body>
 </html>
