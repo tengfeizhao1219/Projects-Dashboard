@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同步系统监控 - 项目管理系统</title>
+    <!-- 外部样式和图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- Chart.js 图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 同步监控页面特定样式 */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+        
+        .metric-card.success::before {
+            background: var(--success-color);
+        }
+        
+        .metric-card.warning::before {
+            background: var(--warning-color);
+        }
+        
+        .metric-card.danger::before {
+            background: var(--danger-color);
+        }
+        
+        .metric-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .metric-card.success .metric-icon {
+            color: var(--success-color);
+        }
+        
+        .metric-card.warning .metric-icon {
+            color: var(--warning-color);
+        }
+        
+        .metric-card.danger .metric-icon {
+            color: var(--danger-color);
+        }
+        
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .metric-trend {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .trend-up {
+            color: var(--success-color);
+        }
+        
+        .trend-down {
+            color: var(--danger-color);
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .history-table th {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--text-color);
+            font-weight: 600;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .history-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        
+        .history-table tr:hover {
+            background: rgba(124, 58, 237, 0.05);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success-color);
+        }
+        
+        .status-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .status-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .system-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .info-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+        
+        /* API状态指示器 */
+        .api-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            margin-left: 15px;
+        }
+        
+        .api-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+        
+        .api-status-dot.offline {
+            background: var(--warning-color);
+            animation: none;
+        }
+        
+        .api-status-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* 加载状态 */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(124, 58, 237, 0.1);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                justify-content: center;
+            }
+            
+            .history-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .api-status-indicator {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container container-wide">
+        <!-- 返回链接 -->
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            返回项目总览
+        </a>
+        
+        <!-- 页面标题 -->
+        <div class="page-header">
+            <h1><i class="fas fa-sync-alt"></i> 同步系统监控</h1>
+            <div class="header-actions">
+                <div class="api-status-indicator" id="apiStatusIndicator">
+                    <div class="api-status-dot" id="apiStatusDot"></div>
+                    <span class="api-status-text" id="apiStatusText">API连接中...</span>
+                </div>
+                <button class="btn btn-sm btn-secondary" onclick="testAPIConnection()">
+                    <i class="fas fa-bolt"></i> 测试连接
+                </button>
+            </div>
+        </div>
+        
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-redo"></i> 刷新数据
+            </button>
+            <button class="btn btn-secondary" onclick="manualSync()">
+                <i class="fas fa-play"></i> 手动同步
+            </button>
+            <button class="btn btn-secondary" onclick="exportReport()">
+                <i class="fas fa-download"></i> 导出报告
+            </button>
+            <button class="btn btn-secondary" onclick="toggleTheme()">
+                <i class="fas fa-palette"></i> 切换主题
+            </button>
+        </div>
+        
+        <!-- 主要指标 -->
+        <h2><i class="fas fa-chart-bar"></i> 主要指标</h2>
+        <div class="metrics-grid" id="metricsContainer">
+            <!-- 指标卡片将通过JavaScript动态生成 -->
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>正在加载实时数据...</p>
+            </div>
+        </div>
+        
+        <!-- 图表区域 -->
+        <h2><i class="fas fa-chart-line"></i> 数据图表</h2>
+        <div class="charts-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3>执行时长趋势</h3>
+                    <select id="durationRange" class="chart-range-selector" onchange="updateDurationChart()">
+                        <option value="7">最近7天</option>
+                        <option value="14">最近14天</option>
+                        <option value="30">最近30天</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="durationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>状态分布</h3>
+                    <select id="statusRange" class="chart-range-selector" onchange="updateStatusChart()">
+                        <option value="7">最近7天</option>
+                        <option value="30" selected>最近30天</option>
+                        <option value="90">最近90天</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 执行历史 -->
+        <h2><i class="fas fa-history"></i> 执行历史</h2>
+        <div class="card">
+            <div class="card-header">
+                <h3>最近执行记录</h3>
+                <select id="historyLimit" class="chart-range-selector" onchange="updateHistoryTable()">
+                    <option value="5">最近5条</option>
+                    <option value="10" selected>最近10条</option>
+                    <option value="20">最近20条</option>
+                </select>
+            </div>
+            <div class="table-responsive">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>执行时间</th>
+                            <th>执行时长</th>
+                            <th>状态</th>
+                            <th>详情</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- 历史记录将通过JavaScript动态生成 -->
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px;">
+                                <div class="loading-state">
+                                    <div class="loading-spinner"></div>
+                                    <p>正在加载执行历史...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 系统信息 -->
+        <h2><i class="fas fa-info-circle"></i> 系统信息</h2>
+        <div class="card">
+            <div class="card-header">
+                <h3>系统状态</h3>
+                <button class="btn btn-sm btn-secondary" onclick="refreshSystemInfo()">
+                    <i class="fas fa-redo"></i> 刷新
+                </button>
+            </div>
+            <div class="system-info-grid" id="systemInfoContainer">
+                <!-- 系统信息将通过JavaScript动态生成 -->
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>正在加载系统信息...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer>
+            <p>© 2026 同步系统监控 - 实时数据版本 | 自动更新 | 版本 2.1.0</p>
+            <p>数据源: <span id="dataSource">可靠的每小时同步系统API</span> | 最后更新: <span class="update-time" id="lastUpdateTime">加载中...</span></p>
+            <p class="mt-2">
+                <small>
+                    <i class="fas fa-info-circle"></i> 
+                    支持实时数据API、自动刷新、错误降级处理、移动端优化
+                </small>
+            </p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="scripts/api-integration.js"></script>
+    <script src="scripts/sync-monitor-enhanced.js"></script>
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化API集成
+            if (window.APIIntegration && window.APIIntegration.initAPIIntegration) {
+                window.APIIntegration.initAPIIntegration();
+            }
+            
+            // 初始化同步监控页面
+            if (window.SyncMonitor && window.SyncMonitor.initSyncMonitor) {
+                window.SyncMonitor.initSyncMonitor();
+            }
+            
+            // 更新最后更新时间
+            updateLastUpdateTime();
+            
+            // 每30秒自动刷新数据
+            setInterval(refreshData, 30000);
+            
+            // 每5分钟自动刷新图表数据
+            setInterval(() => {
+                updateDurationChart();
+                updateStatusChart();
+            }, 300000);
+        });
+        
+        // 更新最后更新时间
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('lastUpdateTime').textContent = timeStr;
+        }
+        
+        // 刷新所有数据
+        async function refreshData() {
+            showNotification('正在刷新所有数据...', 'info');
+            
+            try {
+                // 刷新指标数据
+                if (window.SyncMonitor && window.SyncMonitor.updateMetrics) {
+                    await window.SyncMonitor.updateMetrics();
+                }
+                
+                // 刷新图表数据
+                updateDurationChart();
+                updateStatusChart();
+                
+                // 刷新历史数据
+                updateHistoryTable();
+                
+                // 刷新系统信息
+                refreshSystemInfo();
+                
+                // 更新最后更新时间
+                updateLastUpdateTime();
+                
+                showNotification('数据刷新完成！', 'success');
+            } catch (error) {
+                console.error('刷新数据失败:', error);
+                showNotification('刷新数据失败，请检查API连接', 'warning');
+            }
+        }
+        
+        // 手动同步
+        function manualSync() {
+            showNotification('手动同步功能正在开发中...', 'info');
+        }
+        
+        // 导出报告
+        function exportReport() {
+            showNotification('报告导出功能正在开发中...', 'info');
+        }
+        
+        // 切换主题
+        function toggleTheme() {
+            showNotification('主题切换功能正在开发中...', 'info');
+        }
+        
+        // 测试API连接
+        async function testAPIConnection() {
+            if (window.APIIntegration && window.APIIntegration.testAPIConnection) {
+                await window.APIIntegration.testAPIConnection();
+            } else {
+                showNotification('API集成模块未加载', 'warning');
+            }
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            
+            // 设置背景颜色
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, var(--success-color), #34d399)';
+            } else if (type === 'warning') {
+                notification.style.background = 'linear-gradient(135deg, var(--warning-color), #fbbf24)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, var(--danger-color), #dc2626)';
+            } else {
+                notification.style.

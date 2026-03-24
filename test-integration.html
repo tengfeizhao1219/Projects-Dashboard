@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard 集成测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        
+        .container {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #7c3aed;
+            border-bottom: 2px solid #7c3aed;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .test-card {
+            background: #334155;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #475569;
+            transition: all 0.3s ease;
+        }
+        
+        .test-card:hover {
+            border-color: #7c3aed;
+            transform: translateY(-2px);
+        }
+        
+        .test-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+        
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+        
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .summary {
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid #7c3aed;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .summary h2 {
+            color: #8b5cf6;
+            margin-top: 0;
+        }
+        
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #7c3aed;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Dashboard 真实数据集成 - 完整测试</h1>
+        
+        <div class="test-grid">
+            <!-- API服务器测试 -->
+            <div class="test-card">
+                <div class="test-title">
+                    <span>🔌 API服务器连接</span>
+                    <span class="test-status" id="apiStatus">等待测试</span>
+                </div>
+                <p>测试API服务器是否正常运行</p>
+                <button class="btn" onclick="testAPIServer()">开始测试</button>
+                <div class="test-result" id="apiResult"></div>
+            </div>
+            
+            <!-- 数据API测试 -->
+            <div class="test-card">
+                <div class="test-title">
+                    <span>📈 数据API端点</span>
+                    <span class="test-status" id="dataStatus">等待测试</span>
+                </div>
+                <p>测试所有数据API端点</p>
+                <button class="btn" onclick="testDataEndpoints()">开始测试</button>
+                <div class="test-result" id="dataResult"></div>
+            </div>
+            
+            <!-- 页面功能测试 -->
+            <div class="test-card">
+                <div class="test-title">
+                    <span>🌐 页面功能测试</span>
+                    <span class="test-status" id="pageStatus">等待测试</span>
+                </div>
+                <p>测试主页面和同步监控页面</p>
+                <button class="btn" onclick="testPages()">开始测试</button>
+                <div class="test-result" id="pageResult"></div>
+            </div>
+            
+            <!-- 集成模块测试 -->
+            <div class="test-card">
+                <div class="test-title">
+                    <span>⚙️ API集成模块</span>
+                    <span class="test-status" id="moduleStatus">等待测试</span>
+                </div>
+                <p>测试API集成模块功能</p>
+                <button class="btn" onclick="testIntegrationModule()">开始测试</button>
+                <div class="test-result" id="moduleResult"></div>
+            </div>
+        </div>
+        
+        <div class="summary">
+            <h2>📋 测试总结</h2>
+            <div class="summary-stats">
+                <div class="stat">
+                    <div class="stat-value" id="totalTests">0</div>
+                    <div class="stat-label">总测试数</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="passedTests">0</div>
+                    <div class="stat-label">通过测试</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="failedTests">0</div>
+                    <div class="stat-label">失败测试</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-label">成功率</div>
+                </div>
+            </div>
+            <button class="btn" style="margin-top: 20px; width: 100%;" onclick="runAllTests()">🚀 运行所有测试</button>
+        </div>
+    </div>
+
+    <script>
+        // 测试状态跟踪
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+        
+        // 更新测试统计
+        function updateStats() {
+            document.getElementById('totalTests').textContent = testResults.total;
+            document.getElementById('passedTests').textContent = testResults.passed;
+            document.getElementById('failedTests').textContent = testResults.failed;
+            document.getElementById('successRate').textContent = 
+                testResults.total > 0 ? Math.round((testResults.passed / testResults.total) * 100) + '%' : '0%';
+        }
+        
+        // 记录测试结果
+        function recordTest(success, testName) {
+            testResults.total++;
+            if (success) {
+                testResults.passed++;
+                console.log(`✅ ${testName} - 通过`);
+            } else {
+                testResults.failed++;
+                console.log(`❌ ${testName} - 失败`);
+            }
+            updateStats();
+        }
+        
+        // 测试API服务器
+        async function testAPIServer() {
+            const status = document.getElementById('apiStatus');
+            const result = document.getElementById('apiResult');
+            
+            status.className = 'test-status status-warning';
+            status.textContent = '测试中...';
+            result.textContent = '正在测试API服务器连接...';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/health');
+                const data = await response.json();
+                
+                if (data.success && data.data.status === 'healthy') {
+                    status.className = 'test-status status-success';
+                    status.textContent = '通过';
+                    result.textContent = JSON.stringify(data, null, 2);
+                    recordTest(true, 'API服务器连接');
+                } else {
+                    status.className = 'test-status status-error';
+                    status.textContent = '失败';
+                    result.textContent = JSON.stringify(data, null, 2);
+                    recordTest(false, 'API服务器连接');
+                }
+            } catch (error) {
+                status.className = 'test-status status-error';
+                status.textContent = '错误';
+                result.textContent = `连接失败: ${error.message}`;
+                recordTest(false, 'API服务器连接');
+            }
+        }
+        
+        // 测试数据API端点
+        async function testDataEndpoints() {
+            const status = document.getElementById('dataStatus');
+            const result = document.getElementById('dataResult');
+            
+            status.className = 'test-status status-warning';
+            status.textContent = '测试中...';
+            result.textContent = '正在测试所有数据API端点...\n';
+            
+            const endpoints = ['metrics', 'duration', 'status', 'history', 'system', 'all'];
+            let allPassed = true;
+            let results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/${endpoint}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        results.push(`✅ /api/${endpoint} - 通过`);
+                        recordTest(true, `API端点: ${endpoint}`);
+                    } else {
+                        results.push(`❌ /api/${endpoint} - 失败: ${data.error || '未知错误'}`);
+                        allPassed = false;
+                        recordTest(false, `API端点: ${endpoint}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ /api/${endpoint} - 错误: ${error.message}`);
+                    allPassed = false;
+                    recordTest(false, `API端点: ${endpoint}`);
+                }
+            }
+            
+            if (allPassed) {
+                status.className = 'test-status status-success';
+                status.textContent = '全部通过';
+            } else {
+                status.className = 'test-status status-error';
+                status.textContent = '部分失败';
+            }
+            
+            result.textContent = results.join('\n');
+        }
+        
+        // 测试页面功能
+        async function testPages() {
+            const status = document.getElementById('pageStatus');
+            const result = document.getElementById('pageResult');
+            
+            status.className = 'test-status status-warning';
+            status.textContent = '测试中...';
+            result.textContent = '正在测试页面功能...\n';
+            
+            const pages = [
+                { name: '主页面', url: 'index.html', required: true },
+                { name: '同步监控增强版', url: 'sync-monitor-enhanced.html', required: true },
+                { name: '项目详情页面', url: 'project-details.html', required: true },
+                { name: '原始同步监控', url: 'sync-monitor.html', required: false }
+            ];
+            
+            let results = [];
+            let allRequiredPassed = true;
+            
+            for (const page of pages) {
+                try {
+                    const response = await fetch(page.url);
+                    if (response.ok) {
+                        results.push(`✅ ${page.name} (${page.url}) - 可访问`);
+                        if (page.required) {
+                            recordTest(true, `页面访问: ${page.name}`);
+                        }
+                    } else {
+                        results.push(`❌ ${page.name} (${page.url}) - 访问失败: ${response.status}`);
+                        if (page.required) {
+                            allRequiredPassed = false;
+                            recordTest(false, `页面访问: ${page.name}`);
+                        }
+                    }
+                } catch (error) {
+                    results.push(`❌ ${page.name} (${page.url}) - 错误: ${error.message}`);
+                    if (page.required) {
+                        allRequiredPassed = false;
+                        recordTest(false, `页面访问: ${page.name}`);
+                    }
+                }
+            }
+            
+            // 测试API集成模块加载
+            try {
+                const response = await fetch('scripts/api-integration.js');
+                if (response.ok) {
+                    results.push('✅ API集成模块 - 可加载');
+                    recordTest(true, 'API集成模块加载');
+                } else {
+                    results.push(`❌ API集成模块 - 加载失败: ${response.status}`);
+                    allRequiredPassed = false;
+                    recordTest(false, 'API集成模块加载');
+                }
+            } catch (error) {
+                results.push(`❌ API集成模块 - 错误: ${error.message}`);
+                allRequiredPassed = false;
+                recordTest(false, 'API集成模块加载');
+            }
+            
+            if (allRequiredPassed) {
+                status.className = 'test-status status-success';
+                status.textContent = '全部通过';
+            } else {
+                status.className = 'test-status status-error';
+                status.textContent = '部分失败';
+            }
+            
+            result.textContent = results.join('\n');
+        }
+        
+        // 测试集成模块
+        async function testIntegrationModule() {
+            const status = document.getElementById('moduleStatus');
+            const result = document.getElementById('moduleResult');
+            
+            status.className = 'test-status status-warning';
+            status.textContent = '测试中...';
+            result.textContent = '正在测试API集成模块功能...\n';
+            
+            let results = [];
+            
+            // 测试模块加载
+            try {
+                // 动态加载模块
+                const script = document.createElement('script');
+                script.src = 'scripts/api-integration.js';
+                document.head.appendChild(script);
+                
+                await new Promise(resolve => {
+                    script.onload = resolve;
+                    script.onerror = () => {
+                        throw new Error('模块加载失败');
+                    };
+                });
+                
+                results.push('✅ API集成模块 - 加载成功');
+                recordTest(true, 'API集成模块加载');
+                
+                // 测试模块功能
+                if (window.APIIntegration) {
+                    results.push('✅ APIIntegration对象 - 存在');
+                    recordTest(true, 'APIIntegration对象');
+                    
+                    // 测试健康检查
+                    try {
+                        const isHealthy = await window.APIIntegration.checkHealth();
+                        results.push(`✅ 健康检查 - ${isHealthy ? '通过' : '失败'}`);
+                        recordTest(isHealthy, 'API健康检查');
+                    } catch (error) {
+                        results.push(`❌ 健康检查 - 错误: ${error.message}`);
+                        recordTest(false, 'API健康检查');
+                    }
+                } else {
+                    results.push('❌ APIIntegration对象 - 不存在');
+                    recordTest(false, 'APIIntegration对象');
+                }
+                
+            } catch (error) {
+                results.push(`❌ 模块测试 - 错误: ${error.message}`);
+                recordTest(false, 'API集成模块测试');
+            }
+            
+            const allPassed = results.every(r => r.startsWith('✅'));
+            
+            if (allPassed) {
+                status.className = 'test-status status-success';
+                status.textContent = '全部通过';
+            } else {
+                status.className = 'test-status status-error';
+                status.textContent = '部分失败';
+            }
+            
+            result.textContent = results.join('\n');
+        }
+        
+        // 运行所有测试
+        async function runAllTests() {
+            // 重置统计
+            testResults = { total: 0, passed: 0, failed: 0 };
+            updateStats();
+            
+            // 运行所有测试
+            await testAPIServer();
+            await testDataEndpoints();
+            await testPages();
+            await testIntegrationModule();
+            
+            // 显示最终结果
+            alert(`测试完成!\n\n总测试数: ${testResults.total}\n通过: ${testResults.passed}\n失败: ${testResults.failed}\n成功率: ${Math.round((testResults.passed / testResults.total) * 100)}%`);
+        }
+        
+        // 页面加载后自动运行所有测试
+        window.addEventListener('load', () => {
+            console.log('Dashboard集成测试页面已加载');
+            console.log('点击"运行所有测试"按钮开始完整测试');
+        });
+    </script>
+</body>
+</html>
